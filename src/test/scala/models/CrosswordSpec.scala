@@ -9,11 +9,11 @@ class CrosswordSpec
     extends AnyFlatSpec
     with should.Matchers
     with ScalaCheckPropertyChecks {
-  "A Crossword" should "place the first word" in {
+  "A Crossword" should "product single option for first word" in {
     val word = Word("hello", "A greeting")
-    Crossword(Set.empty, SparseVector.create(None), Map.empty)
+    Crossword(Set.empty, SparseVector.create(None), CandidateLookup.create())
       .placementChoices(word) should be(
-      Set(Placed(word, Placement(Coordinate(0, 0), Across)))
+      Set(Placed(word, Placement(Index(0, 0), Across)))
     )
   }
 
@@ -25,24 +25,23 @@ class CrosswordSpec
       .map { case (c, i) => Index(0, i) -> Some(Letter(c, Across)) }
       .toMap
       .withDefaultValue(None)
-    val candidates = charArray.zipWithIndex.map { case (c, i) =>
-      c -> Set(Index(0, i))
-    }.toMap
+    val candidates = CandidateLookup.create(charArray.zipWithIndex.map {
+      case (c, i) =>
+        c -> Set(Index(0, i))
+    }.toMap)
+
     Crossword(
-      Set(
-        Placed(
-          placedWord,
-          Placement(Coordinate(0, 0), Across)
-        )
-      ),
+      Set(Placed(placedWord, Placement(Index(0, 0), Across))),
       SparseVector(vectorMap),
       candidates
     ).placementChoices(word) should be(
       Set(
-        Placed(word, Placement(Coordinate(0, -1), Down)),
-        Placed(word, Placement(Coordinate(2, 0), Down)),
-        Placed(word, Placement(Coordinate(3, -4), Down))
+        Placed(word, Placement(Index(-1, 0), Down)),
+        Placed(word, Placement(Index(0, 2), Down)),
+        Placed(word, Placement(Index(-4, 3), Down))
       )
     )
   }
+
+  it should "place the first word" in {}
 }
