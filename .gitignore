@@ -1,0 +1,7 @@
+# sbt stuff
+/target/
+/project/**/target/
+
+# intellij
+/.idea/
+/.bsp/
