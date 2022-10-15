@@ -11,3 +11,7 @@ case class Index(row: Int, column: Int) {
 
   def increment(direction: Direction) = add(1, direction)
 }
+
+object Index {
+  val zero = Index(0, 0)
+}

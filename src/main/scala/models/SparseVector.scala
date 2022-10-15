@@ -2,7 +2,7 @@ package mycrossword
 package models
 
 case class SparseVector[T] (storage: Map[Index, T]) {
-  def apply(index: Index) = storage(index)
+  def apply(index: Index): T = storage(index)
 
   def updated(index: Index, value: T): SparseVector[T] =
     val newMap = storage + (index -> value)

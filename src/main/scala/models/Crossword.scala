@@ -6,106 +6,107 @@ import scala.util.Try
 
 case class Crossword(
     words: Set[Placed[Word]],
-    grid: SparseVector[Option[Letter]],
-    candidateLetters: CandidateLookup
+    grid: Grid
 ) {
+  type SuccessfulPlacement = (Placement, Grid)
 
-  def placementChoices(word: Word): Set[Placed[Word]] = {
-    if (words.isEmpty)
-      Set(Placed(word, Placement(Index(0, 0), Across)))
-    else
-      word.word.toCharArray.toSeq.zipWithIndex.flatMap { case (_, i) =>
-        placeWordByLetter(word, i)
-      }.toSet
+  def getUnblockedLetters(word: Placed[Word]): Set[Placed[Letter]] = {
+    val letters = Crossword.toLetters(word)
+    letters.filter(l => !grid.isBlocked(l.placement)).toSet
   }
 
-  def placeWord(word: Placed[Word]): Crossword = {
-    val point = word.placement.point
-    val direction = word.placement.direction
-    val newWords = words + word
-    val letters = word.item.word.toCharArray.toSeq
-    val newGrid = letters.zipWithIndex.foldLeft(grid) { case (g, (c, i)) =>
-      g.updated(point.add(i, direction), Some(Letter(c, direction)))
+  def tryPlaceWord(word: Word, target: Placed[Letter]): Option[Crossword] = {
+    // See if any letters in the word match
+    val letters = word.word.toCharArray.toSeq
+    val matchingLettersWithIndex = letters.zipWithIndex.filter { case (c, i) =>
+      c == target.item.char
     }
-    val newCandidates = letters.zipWithIndex.foldLeft(candidateLetters) {
-      case (lookup, (char, inc)) =>
-        val currentPoint = point.add(inc, direction)
-        if (grid(currentPoint).isDefined) {
-          // Remove this letter and either side
-          (-1 to 1)
-            .map(i => currentPoint.add(i, !direction))
-            .foldLeft(lookup) { case (l, p) =>
-              removeCandidate(p)
-            } // TODO, move this to CandidateLetters
-        } else {
-          // Add letter
-          lookup.append(char, currentPoint)
-        }
+    // Determine candidate starting positions
+    val direction = !target.placement.direction // Intersect perpendicularly
+    val candidateStartingPlacements = matchingLettersWithIndex.map {
+      case (_, i) =>
+        // The start of the word will be offset from the intersection point
+        val startingPoint = target.placement.point.subtract(i, direction)
+        Placement(startingPoint, direction)
     }
-    // Remove candidates off the ends
-    Seq(
-      point.add(-1, direction),
-      point.add(word.item.word.length, direction)
-    ).foldLeft(candidateLetters) { case (cl, i) =>
-      removeCandidate(i)
-    } // TODO, move this to CandidateLetters
-    Crossword(newWords, newGrid, newCandidates)
+    // See if we get a match
+    val maybeNewGrid = tryPlaceWordByLetters(word.word, candidateStartingPlacements)
+    maybeNewGrid.map { case (p, g) =>
+      val placedWord = Placed(word, p)
+      Crossword(words + placedWord, g)
+    }
   }
 
-  private def placeWordByLetter(word: Word, letter: Int): Set[Placed[Word]] =
-    (for {
-      char <- Try(word.word.charAt(letter)).toOption
-      placedLetters = candidateLetters.get(char)
+  def repr(): String = {
+    // Find the bounds
+    val allBounds = words.map(_.bounds)
+    val enclosingBounds = Bounds.enclosingBounds(allBounds)
+    // Fetch the grid contents
+    val elements = for {
+      r <- 0 until enclosingBounds.width
+      c <- 0 until enclosingBounds.height
     } yield {
-      placedLetters.flatMap(index => tryToPlace(word, letter, index))
-    }).getOrElse(Set.empty)
-
-  private def tryToPlace(
-      word: Word,
-      letter: Int,
-      index: Index
-  ): Option[Placed[Word]] =
-    grid(index)
-      .flatMap(l => {
-        val direction = !(l.direction)
-        val chars = word.word.toList
-        val offset = letter
-        val startingIndex = index.subtract(offset, direction)
-        if (testIfFits(chars, startingIndex, direction))
-          Some(
-            Placed(
-              word,
-              Placement(
-                startingIndex,
-                direction
-              )
-            )
-          )
-        else None
-      })
+      grid(Index(r, c))
+    }
+    // Build a string
+    elements
+      .grouped(enclosingBounds.width)
+      .map(_.map(_.repr).mkString("|"))
+      .mkString("\n")
+  }
 
   @tailrec
-  private def testIfFits(
-      letters: Seq[Char],
-      index: Index,
-      direction: Direction
-  ): Boolean =
-    letters match {
-      case Nil => true
-      case head +: tail => {
-        val isValid = grid(index).map(l => l.char == head).getOrElse(true)
-        if (isValid) testIfFits(tail, index.increment(direction), direction)
-        else false
+  private def tryPlaceWordByLetters(
+      word: String,
+      startingPoints: Seq[Placement]
+  ): Option[SuccessfulPlacement] = startingPoints match {
+    case Nil          => None // We've run out of candidate starting points
+    case head +: tail =>
+      val maybeNewGrid = Crossword.tryPlaceLetters(word, head, grid)
+      // If we find a new grid placement return it, otherwise try the next starting point
+      maybeNewGrid match {
+        case Some(g) => Some((head, g))
+        case None => tryPlaceWordByLetters(word, tail)
       }
-    }
+  }
+}
 
-  private def removeCandidate(point: Index): CandidateLookup = {
-    grid(point) match {
-      case Some(letter) =>
-        grid(point)
-          .map(l => candidateLetters.remove(l.char, point))
-          .getOrElse(candidateLetters)
-      case None => candidateLetters
+object Crossword {
+  def init(word: Word): Crossword = {
+    val initialPlacement = Placement(Index(0, 0), Across)
+    val grid = tryPlaceLetters(
+      word.word,
+      initialPlacement,
+      Grid.create()
+    )
+    Crossword(
+      Set(Placed(word, initialPlacement)),
+      grid.get
+    )
+  }
+
+  def toLetters(word: Placed[Word]): Seq[Placed[Letter]] = {
+    word.item.word.toCharArray.zipWithIndex.map { case (c, i) =>
+      Placed(Letter(c, word.placement.direction), word.placement.add(i))
     }
   }
+
+  @tailrec
+  private def tryPlaceLetters(
+      letters: Seq[Char],
+      placement: Placement,
+      grid: Grid
+  ): Option[Grid] = letters match {
+    case Nil => Some(grid) // We've finished placing the letters!
+    case head +: tail =>
+      if (grid.fits(placement.point, head)) {
+        val newGrid = grid.placeLetter(placement.point, Letter(head, placement.direction))
+        tryPlaceLetters(tail, placement.increment(), newGrid)
+      }
+      else None
+  }
+
+  given string2Chars: Conversion[String, Seq[Char]] = _.toCharArray.toSeq
+
+  val empty = Crossword(Set.empty, Grid.create())
 }
