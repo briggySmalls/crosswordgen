@@ -9,14 +9,12 @@ case class Grid(data: SparseVector[GridElement]) {
   def placeLetter(index: Index, letter: Letter): Grid = {
     // Add the letter
     val dataWithLetter = data.updated(index, Filled(letter))
-    // Update blocked
     val wordDirection = letter.direction
     val perpDirection = !wordDirection
-    val placements = Seq(
-      index.add(1, perpDirection),
-      index.subtract(1, perpDirection)
-    ).map(Placement(_, wordDirection))
-    val newData = placements.foldLeft(dataWithLetter) {
+    // We must check either side of the letter
+    val perpNeighbours =
+      Placement(index, wordDirection).neighbours(aligned = false)
+    val newData = perpNeighbours.foldLeft(dataWithLetter) {
       case (data, placement) =>
         Grid.setBlockedStatus(data, placement)
     }
@@ -24,12 +22,9 @@ case class Grid(data: SparseVector[GridElement]) {
   }
 
   def isBlocked(placement: Placement): Boolean = {
-    val perpDirection = !placement.direction
     val index = placement.point
-    val indicesToCheck = Seq(
-      index.add(1, perpDirection),
-      index.subtract(1, perpDirection)
-    )
+    val indicesToCheck =
+      placement.neighbours(aligned = false).map(_.point)
     val contents = indicesToCheck.map(data(_))
     val blockedOnBothSides = contents.forall {
       case Blocked => true
@@ -52,10 +47,9 @@ object Grid {
   ): SparseVector[GridElement] = {
     val queryIndex =
       placement.point // The index we're determining the status for
-    val indicesToCheck = Seq( // The indices we need to check
-      placement.add(1).point,
-      placement.subtract(1).point
-    )
+    val indicesToCheck = placement
+      .neighbours(perpendicular = false)
+      .map(_.point) // The indices we need to check
     indicesToCheck.foldLeft(data) { case (data, indexToCheck) =>
       data(indexToCheck) match {
         case Empty => data

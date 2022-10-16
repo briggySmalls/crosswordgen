@@ -11,6 +11,10 @@ case class Index(row: Int, column: Int) {
 
   def subtract(value: Int, direction: Direction) = add(value * -1, direction)
 
+  def +(other: Index) = Index(row + other.row, column + other.column)
+  def -(other: Index) = this + (other * -1)
+  def *(value: Int) = Index(row * value, column * value)
+
   def increment(direction: Direction) = add(1, direction)
 }
 

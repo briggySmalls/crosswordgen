@@ -22,10 +22,4 @@ case class Filled(letter: Letter) extends GridElement {
 object GridElement {
   val blockedChar = '■'
   val EmptyChar = ' '
-
-  def parse(char: Char): GridElement = char match {
-    case blockedChar => Blocked
-    case EmptyChar   => Empty
-    case c: Char     => Filled(Letter(c))
-  }
 }
