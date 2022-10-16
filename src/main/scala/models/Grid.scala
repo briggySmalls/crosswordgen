@@ -4,7 +4,18 @@ package models
 case class Grid(data: SparseVector[GridElement]) {
   def apply(index: Index): GridElement = data(index)
 
-  def fits(index: Index, char: Char) = data(index).fits(char)
+  def fits(placement: Placement, char: Char): Boolean = data(
+    placement.point
+  ) match {
+    case Filled(l) =>
+      l.char == char // If we're intersecting, our letter must match
+    case _ =>
+      placement
+        .neighbours(aligned = false)
+        .forall(p =>
+          !data(p.point).isFilled
+        ) // Otherwise, we need to make sure we're not brushing past a word
+  }
 
   def placeLetter(index: Index, letter: Letter): Grid = {
     // Add the letter

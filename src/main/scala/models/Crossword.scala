@@ -115,7 +115,7 @@ object Crossword {
                               ): Option[Grid] = letters match {
     case Nil => Some(grid) // We've finished placing the letters!
     case head +: tail =>
-      if (grid.fits(placement.point, head)) {
+      if (grid.fits(placement, head)) {
         val newGrid = grid.placeLetter(placement.point, Letter(head, placement.direction))
         tryPlaceLettersRecursive(tail, placement.increment(), newGrid)
       }

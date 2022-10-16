@@ -110,9 +110,9 @@ object CrosswordBuilderService {
     val squareness = 1 - ((c.bounds.width - c.bounds.height) / (c.bounds.width + c.bounds.height).toDouble).abs
     val size = 1 - ((c.bounds.area) / maxSize.toDouble)
     Set(
-      (1.0, numWords),
+      (3.0, numWords),
       (1.0, squareness),
-      (1.0, size)
+      (2.0, size)
     ).foldLeft(0.0){ case (score, (w, s)) => score + w * s }
   }
 }
