@@ -1,7 +1,7 @@
 package mycrossword
 package services
 
-import models.{Crossword, Letter, Placed, Word}
+import models.{Crossword, Direction, Letter, Placed, Word}
 
 import mycrossword.services.CrosswordBuilderService.selectBestCrossword
 
@@ -20,7 +20,8 @@ class CrosswordBuilderService {
       case Nil          => Crossword.empty // We weren't given any words to place!
       case head +: tail =>
         // Create a crossword with the first word
-        val init = Crossword.init(head)
+        val direction = Random.shuffle(Seq(Direction.Across, Direction.Down)).head
+        val init = Crossword.init(head, direction)
         // Try to place the rest
         placeWords(tail, init)
     }

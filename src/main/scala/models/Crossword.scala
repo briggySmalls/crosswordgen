@@ -80,8 +80,8 @@ object Crossword {
   given string2Chars: Conversion[String, Seq[Char]] = _.toCharArray.toSeq
   val empty = Crossword(Set.empty, Grid.create())
 
-  def init(word: Word): Crossword = {
-    val initialPlacement = Placement(Index(0, 0), Direction.Across)
+  def init(word: Word, direction: Direction = Direction.Across): Crossword = {
+    val initialPlacement = Placement(Index(0, 0), direction)
     val grid = tryPlaceLetters(
       word.word,
       initialPlacement,
