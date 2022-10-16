@@ -13,7 +13,6 @@ case class Crossword(
   type SuccessfulPlacement = (Placement, Grid)
 
   lazy val bounds: Bounds = {
-    // Find the bounds
     val allBounds = words.map(_.bounds)
     Bounds.enclosingBounds(allBounds)
   }
@@ -38,7 +37,8 @@ case class Crossword(
         Placement(startingPoint, direction)
     }
     // See if we get a match
-    val maybeNewGrid = tryPlaceWordByLetters(word.word, candidateStartingPlacements)
+    val maybeNewGrid =
+      tryPlaceWordByLetters(word.word, candidateStartingPlacements)
     maybeNewGrid.map { case (p, g) =>
       val placedWord = Placed(word, p)
       Crossword(words + placedWord, g)
@@ -65,18 +65,21 @@ case class Crossword(
       word: String,
       startingPoints: Seq[Placement]
   ): Option[SuccessfulPlacement] = startingPoints match {
-    case Nil          => None // We've run out of candidate starting points
+    case Nil => None // We've run out of candidate starting points
     case head +: tail =>
       val maybeNewGrid = Crossword.tryPlaceLetters(word, head, grid)
       // If we find a new grid placement return it, otherwise try the next starting point
       maybeNewGrid match {
         case Some(g) => Some((head, g))
-        case None => tryPlaceWordByLetters(word, tail)
+        case None    => tryPlaceWordByLetters(word, tail)
       }
   }
 }
 
 object Crossword {
+  given string2Chars: Conversion[String, Seq[Char]] = _.toCharArray.toSeq
+  val empty = Crossword(Set.empty, Grid.create())
+
   def init(word: Word): Crossword = {
     val initialPlacement = Placement(Index(0, 0), Direction.Across)
     val grid = tryPlaceLetters(
@@ -90,39 +93,36 @@ object Crossword {
     )
   }
 
-  def toLetters(word: Placed[Word]): Seq[Placed[Letter]] = {
+  private def toLetters(word: Placed[Word]): Seq[Placed[Letter]] = {
     word.item.word.toCharArray.zipWithIndex.map { case (c, i) =>
       Placed(Letter(c, word.placement.direction), word.placement.add(i))
     }
   }
 
   private def tryPlaceLetters(
-                               letters: Seq[Char],
-                               placement: Placement,
-                               grid: Grid
-                             ): Option[Grid] = {
+      letters: Seq[Char],
+      placement: Placement,
+      grid: Grid
+  ): Option[Grid] = {
     // First check if we'd touch at either end
-    val ends = Seq(placement.subtract(1).point, placement.add(letters.size).point)
+    val ends =
+      Seq(placement.subtract(1).point, placement.add(letters.size).point)
     if (ends.exists(grid(_).isFilled)) None
     else tryPlaceLettersRecursive(letters, placement, grid)
   }
 
   @tailrec
-  def tryPlaceLettersRecursive(
-                                letters: Seq[Char],
-                                placement: Placement,
-                                grid: Grid
-                              ): Option[Grid] = letters match {
+  private def tryPlaceLettersRecursive(
+      letters: Seq[Char],
+      placement: Placement,
+      grid: Grid
+  ): Option[Grid] = letters match {
     case Nil => Some(grid) // We've finished placing the letters!
     case head +: tail =>
       if (grid.fits(placement, head)) {
-        val newGrid = grid.placeLetter(placement.point, Letter(head, placement.direction))
+        val newGrid =
+          grid.placeLetter(placement.point, Letter(head, placement.direction))
         tryPlaceLettersRecursive(tail, placement.increment(), newGrid)
-      }
-      else None
+      } else None
   }
-
-  given string2Chars: Conversion[String, Seq[Char]] = _.toCharArray.toSeq
-
-  val empty = Crossword(Set.empty, Grid.create())
 }
