@@ -1,7 +1,7 @@
 package mycrossword
 package models
 
-trait Placeable {
+sealed trait Placeable {
   def length: Int
 }
 

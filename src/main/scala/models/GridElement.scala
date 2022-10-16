@@ -1,7 +1,7 @@
 package mycrossword
 package models
 
-trait GridElement {
+sealed trait GridElement {
   def fits(char: Char): Boolean
   def repr: Char
 }

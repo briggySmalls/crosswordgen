@@ -3,7 +3,7 @@ package models
 
 import models.Direction.Across
 
-trait Direction {
+sealed trait Direction {
   import Direction._
 
   def unary_! : Direction = this match {
