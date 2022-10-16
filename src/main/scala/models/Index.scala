@@ -1,10 +1,12 @@
 package mycrossword
 package models
 
+import models.Direction.{Across, Down}
+
 case class Index(row: Int, column: Int) {
   def add(value: Int, direction: Direction) = direction match {
-    case Down   => Index(row + value, column)
-    case Across => Index(row, column + value)
+    case Direction.Down   => Index(row + value, column)
+    case Direction.Across => Index(row, column + value)
   }
 
   def subtract(value: Int, direction: Direction) = add(value * -1, direction)

@@ -73,7 +73,7 @@ case class Crossword(
 
 object Crossword {
   def init(word: Word): Crossword = {
-    val initialPlacement = Placement(Index(0, 0), Across)
+    val initialPlacement = Placement(Index(0, 0), Direction.Across)
     val grid = tryPlaceLetters(
       word.word,
       initialPlacement,
