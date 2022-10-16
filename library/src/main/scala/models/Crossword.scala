@@ -1,6 +1,8 @@
 package mycrossword
 package models
 
+import mycrossword.services.GraphRenderer
+
 import scala.annotation.tailrec
 import scala.scalajs.js.annotation.JSExport
 import scala.util.Try
@@ -46,7 +48,6 @@ case class Crossword(
     }
   }
 
-  @JSExport
   def repr(): String = {
     // Fetch the grid contents
     val elements = for {
@@ -61,6 +62,9 @@ case class Crossword(
       .map(_.map(_.repr).mkString("|"))
       .mkString("\n")
   }
+
+  @JSExport
+  def svg(): String = GraphRenderer.render(bounds, grid)
 
   @tailrec
   private def tryPlaceWordByLetters(

@@ -8,13 +8,14 @@
     <h1>Crossword builder</h1>
     <form id="form">
       <textarea name="words"></textarea>
-      <input type="submit" name="submit">Build Crossword</input>
+      <button type="submit" name="submit">Build crossword</button>
     </form>
     <p id="output"></p>
     <!-- Include Scala.js compiled code -->
     <script src="../library/target/scala-3.1.3/mycrossword-fastopt/main.js"></script>
     <script>
       const c = new Crossword();
+      const parser = new DOMParser();
       
       function processForm(e) {
         if (e.preventDefault) e.preventDefault();
@@ -29,9 +30,11 @@
         console.log(words);
         // Build the crossword
         const crossword = c.findGoodCrossword(words, 1000);
-        // Output
+        const svgSource = crossword.svg();
+        // Output an svg
+        // var svg = parser.parseFromString(svgSource, "image/svg+xml");
         const outputDiv = document.getElementById('output');
-        outputDiv.innerText = crossword.repr();
+        outputDiv.innerHTML = svgSource
         // Indicate we succeeded to the browser
         return false;
       }
