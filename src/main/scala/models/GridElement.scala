@@ -4,6 +4,10 @@ package models
 sealed trait GridElement {
   def fits(char: Char): Boolean
   def repr: Char
+  def isFilled: Boolean = this match {
+    case _: Filled => true
+    case _         => false
+  }
 }
 
 case object Blocked extends GridElement {
@@ -16,7 +20,7 @@ case object Empty extends GridElement {
 }
 case class Filled(letter: Letter) extends GridElement {
   def fits(char: Char): Boolean = letter.char == char
-  def repr: Char = letter.char
+  def repr: Char = letter.char.toUpper
 }
 
 object GridElement {

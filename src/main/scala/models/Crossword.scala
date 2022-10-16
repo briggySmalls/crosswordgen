@@ -8,6 +8,8 @@ case class Crossword(
     words: Set[Placed[Word]],
     grid: Grid
 ) {
+  import Crossword._
+
   type SuccessfulPlacement = (Placement, Grid)
 
   lazy val bounds: Bounds = {
@@ -94,17 +96,28 @@ object Crossword {
     }
   }
 
-  @tailrec
   private def tryPlaceLetters(
-      letters: Seq[Char],
-      placement: Placement,
-      grid: Grid
-  ): Option[Grid] = letters match {
+                               letters: Seq[Char],
+                               placement: Placement,
+                               grid: Grid
+                             ): Option[Grid] = {
+    // First check if we'd touch at either end
+    val ends = Seq(placement.subtract(1).point, placement.add(letters.size).point)
+    if (ends.exists(grid(_).isFilled)) None
+    else tryPlaceLettersRecursive(letters, placement, grid)
+  }
+
+  @tailrec
+  def tryPlaceLettersRecursive(
+                                letters: Seq[Char],
+                                placement: Placement,
+                                grid: Grid
+                              ): Option[Grid] = letters match {
     case Nil => Some(grid) // We've finished placing the letters!
     case head +: tail =>
       if (grid.fits(placement.point, head)) {
         val newGrid = grid.placeLetter(placement.point, Letter(head, placement.direction))
-        tryPlaceLetters(tail, placement.increment(), newGrid)
+        tryPlaceLettersRecursive(tail, placement.increment(), newGrid)
       }
       else None
   }

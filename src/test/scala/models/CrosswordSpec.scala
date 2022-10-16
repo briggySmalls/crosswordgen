@@ -48,8 +48,34 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
     result.value should === (expected)
   }
 
+  it should "not place a word if it touches at either end" in {
+    val startingGrid = """
+        |a↓|  |  |  |
+        |t↓|  |  |d↓|
+        |t↓|  |  |a↓|
+        |e↓|  |  |f↓|
+        |m↓|  |  |t↓|
+        |p↓|  |  |  |
+        |t↓|  |  |  |
+        |""".stripMargin
+    val startingWords = Set(
+      Placed(Word("attempt", ""), Placement(Index(0, 0), Direction.Down)),
+      Placed(Word("daft", ""), Placement(Index(1, 3), Direction.Across)),
+    )
+    val startingCrossword = toCrossword(startingWords, startingGrid)
+    startingCrossword.tryPlaceWord(
+      Word("top", ""), Placed(Letter('t', Direction.Down), Placement(Index(1, 0), Direction.Down))
+    ).isEmpty should === (true)
+  }
+    )
+    val startingCrossword = toCrossword(startingWords, startingGrid)
+    startingCrossword.tryPlaceWord(
+      Word("top", ""), Placed(Letter('t', Direction.Down), Placement(Index(1, 2), Direction.Down))
+    ).isEmpty should === (true)
+  }
+
   "Crossword.repr" should "render a simple crossword" in {
-    brentfordCrossword.repr() should === ("b|r|e|n|t|f|o|r|d")
+    brentfordCrossword.repr() should === ("B|R|E|N|T|F|O|R|D")
   }
 }
 
