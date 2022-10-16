@@ -2,8 +2,9 @@ package mycrossword
 package models
 
 case class Bounds(min: Index, max: Index) {
-  def width: Int = max.column - min.column
-  def height: Int = max.row - min.row
+  lazy val width: Int = max.column - min.column
+  lazy val height: Int = max.row - min.row
+  lazy val area: Int = width * height
 }
 
 object Bounds {

@@ -10,6 +10,12 @@ case class Crossword(
 ) {
   type SuccessfulPlacement = (Placement, Grid)
 
+  lazy val bounds: Bounds = {
+    // Find the bounds
+    val allBounds = words.map(_.bounds)
+    Bounds.enclosingBounds(allBounds)
+  }
+
   def getUnblockedLetters(word: Placed[Word]): Set[Placed[Letter]] = {
     val letters = Crossword.toLetters(word)
     letters.filter(l => !grid.isBlocked(l.placement)).toSet
@@ -38,19 +44,16 @@ case class Crossword(
   }
 
   def repr(): String = {
-    // Find the bounds
-    val allBounds = words.map(_.bounds)
-    val enclosingBounds = Bounds.enclosingBounds(allBounds)
     // Fetch the grid contents
     val elements = for {
-      r <- enclosingBounds.min.row to enclosingBounds.max.row
-      c <- enclosingBounds.min.column until enclosingBounds.max.column
+      r <- bounds.min.row to bounds.max.row
+      c <- bounds.min.column until bounds.max.column
     } yield {
       grid(Index(r, c))
     }
     // Build a string
     elements
-      .grouped(enclosingBounds.width)
+      .grouped(bounds.width)
       .map(_.map(_.repr).mkString("|"))
       .mkString("\n")
   }

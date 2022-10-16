@@ -3,10 +3,17 @@ package services
 
 import models.{Crossword, Letter, Placed, Word}
 
+import mycrossword.services.CrosswordBuilderService.selectBestCrossword
+
 import scala.annotation.tailrec
 import scala.util.Random
 
 class CrosswordBuilderService {
+  def findGoodCrossword(words: Set[Word], iterations: Int): Crossword = {
+    val trials = (1 to iterations).map(_ => buildCrossword(words))
+    selectBestCrossword(trials, words.size)
+  }
+
   def buildCrossword(words: Set[Word]): Crossword =
     // Sort words by length, starting with the longest
     words.toSeq.sortBy(_.word.length)(Ordering.Int.reverse) match {
@@ -77,5 +84,35 @@ class CrosswordBuilderService {
             crossword
           )
       }
+  }
+}
+
+object CrosswordBuilderService {
+  def selectBestCrossword(
+      cs: Seq[Crossword],
+      candidateWordCount: Int
+  ): Crossword =
+    val maxArea = cs.foldLeft(0){case(area, c) => area.max(c.bounds.area)}
+    val scoredCrosswords = cs.map(c =>
+      (c, calculateScore(c, candidateWordCount, maxArea))
+    )
+    scoredCrosswords.reduce { case (best, candidate) =>
+      if (candidate._2 > best._2) candidate
+      else best
+    }._1
+
+  def calculateScore(
+      c: Crossword,
+      candidateWordCount: Int,
+      maxSize: Int
+  ): Double = {
+    val numWords = c.words.size / candidateWordCount.toDouble
+    val squareness = 1 - ((c.bounds.width - c.bounds.height) / (c.bounds.width + c.bounds.height).toDouble).abs
+    val size = 1 - ((c.bounds.area) / maxSize.toDouble)
+    Set(
+      (1.0, numWords),
+      (1.0, squareness),
+      (1.0, size)
+    ).foldLeft(0.0){ case (score, (w, s)) => score + w * s }
   }
 }
