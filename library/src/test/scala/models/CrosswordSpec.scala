@@ -13,23 +13,31 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
 
   "Crossword.init" should "start with an initial word" in {
     val c = Crossword.init(brendfordWord)
-    c should === (brentfordCrossword)
+    c should ===(brentfordCrossword)
   }
 
   "Crossword.getUnblockedLetters" should "return whole initial word" in {
-    brentfordCrossword.getUnblockedLetters(placedBrentfordWord) should ===(Crossword.string2Chars("brentford").zipWithIndex
-      .map{ case (c, i) => Placed(
-        Letter(c, Direction.Across), Placement(Index.zero.add(i, Direction.Across), Direction.Across)
-      )}.toSet)
+    brentfordCrossword.getUnblockedLetters(placedBrentfordWord) should ===(
+      Crossword
+        .string2Chars("brentford")
+        .zipWithIndex
+        .map { case (c, i) =>
+          Placed(
+            Letter(c, Direction.Across),
+            Placement(Index.zero.add(i, Direction.Across), Direction.Across)
+          )
+        }
+        .toSet
+    )
   }
 
   "Crossword.placeWord" should "place word correctly" in {
-    val attemptWord = Word("attempt", "to try")
+    val attemptWord = Word("attempt")
     val expected = toCrossword(
       Set(
-      placedBrentfordWord,
-      Placed(attemptWord, Placement(Index(-3, 2), Direction.Down))
-    ),
+        placedBrentfordWord,
+        Placed(attemptWord, Placement(Index(-3, 2), Direction.Down))
+      ),
       """
         |  |  |a↓|  |  |  |  |  |
         |  |  |t↓|  |  |  |  |  |
@@ -39,13 +47,17 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
         |  |  |p↓|  |  |  |  |  |
         |  |  |t↓|  |  |  |  |  |
         |""".stripMargin,
-      origin=Index(3, 0)
+      origin = Index(3, 0)
     )
     val result = brentfordCrossword.tryPlaceWord(
-      attemptWord, Placed(Letter('e', Direction.Across), Placement(Index(0, 2), Direction.Across))
+      attemptWord,
+      Placed(
+        Letter('e', Direction.Across),
+        Placement(Index(0, 2), Direction.Across)
+      )
     )
     println(result.map(_.repr()))
-    result.value should === (expected)
+    result.value should ===(expected)
   }
 
   it should "not place a word if it touches at either end" in {
@@ -59,13 +71,19 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
         |t↓|  |  |  |
         |""".stripMargin
     val startingWords = Set(
-      Placed(Word("attempt", ""), Placement(Index(0, 0), Direction.Down)),
-      Placed(Word("daft", ""), Placement(Index(1, 3), Direction.Across)),
+      Placed(Word("attempt"), Placement(Index(0, 0), Direction.Down)),
+      Placed(Word("daft"), Placement(Index(1, 3), Direction.Across))
     )
     val startingCrossword = toCrossword(startingWords, startingGrid)
-    startingCrossword.tryPlaceWord(
-      Word("top", ""), Placed(Letter('t', Direction.Down), Placement(Index(1, 0), Direction.Down))
-    ).isEmpty should === (true)
+    startingCrossword
+      .tryPlaceWord(
+        Word("top"),
+        Placed(
+          Letter('t', Direction.Down),
+          Placement(Index(1, 0), Direction.Down)
+        )
+      )
+      .isEmpty should ===(true)
   }
 
   it should "not place a word if it touches adjacently" in {
@@ -79,29 +97,40 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
        |t↓|  |  |  |
        |""".stripMargin
     val startingWords = Set(
-      Placed(Word("attempt", ""), Placement(Index(0, 0), Direction.Down)),
-      Placed(Word("daft", ""), Placement(Index(1, 3), Direction.Across)),
+      Placed(Word("attempt"), Placement(Index(0, 0), Direction.Down)),
+      Placed(Word("daft"), Placement(Index(1, 3), Direction.Across))
     )
     val startingCrossword = toCrossword(startingWords, startingGrid)
-    startingCrossword.tryPlaceWord(
-      Word("also", ""), Placed(Letter('a', Direction.Down), Placement(Index(0, 0), Direction.Down))
-    ).isEmpty should === (true)
+    startingCrossword
+      .tryPlaceWord(
+        Word("also"),
+        Placed(
+          Letter('a', Direction.Down),
+          Placement(Index(0, 0), Direction.Down)
+        )
+      )
+      .isEmpty should ===(true)
   }
 
   "Crossword.repr" should "render a simple crossword" in {
-    brentfordCrossword.repr() should === ("B|R|E|N|T|F|O|R|D")
+    brentfordCrossword.repr() should ===("B|R|E|N|T|F|O|R|D")
   }
 }
 
 object CrosswordSpec {
-  val brendfordWord = Word("brentford", "by far the greatest team")
-  val placedBrentfordWord = Placed(brendfordWord, Placement(Index.zero, Direction.Across))
+  val brendfordWord = Word("brentford")
+  val placedBrentfordWord =
+    Placed(brendfordWord, Placement(Index.zero, Direction.Across))
   val brentfordCrossword = toCrossword(
     Set(Placed(brendfordWord, Placement(Index.zero, Direction.Across))),
     "b→|r→|e→|n→|t→|f→|o→|r→|d→".stripMargin
   )
 
-  def toCrossword(words: Set[Placed[Word]], input: String, origin: Index = Index.zero): Crossword =
+  def toCrossword(
+      words: Set[Placed[Word]],
+      input: String,
+      origin: Index = Index.zero
+  ): Crossword =
     Crossword(words, toGrid(input, origin))
 
   def toGrid(input: String, origin: Index): Grid = {
@@ -111,9 +140,13 @@ object CrosswordSpec {
       (row, r) <- symbols.zipWithIndex
       (s, c) <- row.zipWithIndex
     } yield (Index(r, c) - origin, parseGridElementUnsafe(s))
-    val positionedElementsWithoutEmpty = positionedElements.filter { case (_, el) => el != Empty}
-    val sparseVector = positionedElementsWithoutEmpty.foldLeft(SparseVector.create[GridElement](Empty)) {
-      case (sv, (i, el)) => sv.updated(i, el)
+    val positionedElementsWithoutEmpty = positionedElements.filter {
+      case (_, el) => el != Empty
+    }
+    val sparseVector = positionedElementsWithoutEmpty.foldLeft(
+      SparseVector.create[GridElement](Empty)
+    ) { case (sv, (i, el)) =>
+      sv.updated(i, el)
     }
     Grid(sparseVector)
   }
@@ -122,9 +155,10 @@ object CrosswordSpec {
     val placedLetterRegex: Regex = """(\w)(→|↓)""".r
     symbol match {
       case "■■" => Blocked
-      case "  "  => Empty
+      case "  " => Empty
       case placedLetterRegex(letterStr, directionStr) =>
-        val direction = if (directionStr == "→") Direction.Across else Direction.Down
+        val direction =
+          if (directionStr == "→") Direction.Across else Direction.Down
         Filled(Letter(letterStr.charAt(0), direction))
       case _ => throw new RuntimeException(s"Unexpected symbol: \"$symbol\"")
     }

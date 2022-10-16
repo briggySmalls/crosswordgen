@@ -10,9 +10,11 @@ sealed trait Direction {
     case Across => Down
     case Down   => Across
   }
+
+  def repr: String
 }
 
 object Direction {
-  object Across extends Direction
-  object Down extends Direction
+  object Across extends Direction { val repr = "across" }
+  object Down extends Direction { val repr = "down" }
 }

@@ -4,7 +4,9 @@ package models
 import mycrossword.services.GraphRenderer
 
 import scala.annotation.tailrec
-import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js
+import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import scalajs.js.JSConverters.*
 import scala.util.Try
 
 case class Crossword(
@@ -18,6 +20,26 @@ case class Crossword(
   lazy val bounds: Bounds = {
     val allBounds = words.map(_.bounds)
     Bounds.enclosingBounds(allBounds)
+  }
+
+  @JSExport
+  def numberedWords(): js.Array[NumberedWordJs] = {
+    val ws = words
+      .groupBy(
+        _.placement.point
+      ) // Group by starting point, to share numbers for across/down
+      .toSeq
+      .sortBy { case (i, _) =>
+        (i.row, i.column) // Sort by row first, then column
+      }
+      .zipWithIndex
+      .flatMap { case ((_, words), i) =>
+        words.map(w => NumberedWord(i + 1, w.placement.direction, w.item.word))
+      }
+      .map(nw => nw.toJs())
+      .toJSArray
+    println(ws)
+    ws
   }
 
   def getUnblockedLetters(word: Placed[Word]): Set[Placed[Letter]] = {
@@ -83,6 +105,22 @@ case class Crossword(
 }
 
 object Crossword {
+  case class NumberedWord(number: Int, direction: Direction, word: String) {
+    def toJs(): NumberedWordJs =
+      js.Dynamic
+        .literal(
+          number = number,
+          direction = direction.repr,
+          word = word
+        )
+        .asInstanceOf[NumberedWordJs]
+  }
+  trait NumberedWordJs extends js.Object {
+    def number: Int
+    def direction: String
+    def word: String
+  }
+
   given string2Chars: Conversion[String, Seq[Char]] = _.toCharArray.toSeq
   val empty = Crossword(Set.empty, Grid.create())
 
