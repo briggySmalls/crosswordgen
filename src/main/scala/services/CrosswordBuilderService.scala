@@ -15,14 +15,13 @@ class CrosswordBuilderService {
         // Create a crossword with the first word
         val init = Crossword.init(head)
         // Try to place the rest
-        placeWords(tail, init, 1000)
+        placeWords(tail, init)
     }
 
   @tailrec
   private def placeWords(
       words: Seq[Word],
-      crossword: Crossword,
-      iterations: Int
+      crossword: Crossword
   ): Crossword =
     words match {
       case Nil          => crossword // All the candidates have been attempted!
@@ -33,7 +32,7 @@ class CrosswordBuilderService {
         val newCrossword = tryMatchWithPlacedWords(head, placedWords, crossword)
           .getOrElse(crossword)
         // Move on to the next candidate
-        placeWords(tail, newCrossword, iterations - 1)
+        placeWords(tail, newCrossword)
     }
 
   @tailrec
