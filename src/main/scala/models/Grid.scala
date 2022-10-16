@@ -45,16 +45,19 @@ object Grid {
       data: SparseVector[GridElement],
       placement: Placement
   ): SparseVector[GridElement] = {
-    val queryIndex =
-      placement.point // The index we're determining the status for
-    val indicesToCheck = placement
-      .neighbours(perpendicular = false)
-      .map(_.point) // The indices we need to check
-    indicesToCheck.foldLeft(data) { case (data, indexToCheck) =>
-      data(indexToCheck) match {
-        case Empty => data
-        case _     => data.updated(queryIndex, Blocked)
-      }
+    val queryIndex = placement.point
+    data(queryIndex) match {
+      case Empty => // We want to identify empty squares that are now blocked
+        val indicesToCheck = placement
+          .neighbours(perpendicular = false)
+          .map(_.point) // The indices we need to check
+        indicesToCheck.foldLeft(data) { case (data, indexToCheck) =>
+          data(indexToCheck) match {
+            case _: Filled => data.updated(queryIndex, Blocked)
+            case _         => data
+          }
+        }
+      case _ => data
     }
   }
 }
