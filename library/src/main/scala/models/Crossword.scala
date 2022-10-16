@@ -2,6 +2,7 @@ package mycrossword
 package models
 
 import scala.annotation.tailrec
+import scala.scalajs.js.annotation.JSExport
 import scala.util.Try
 
 case class Crossword(
@@ -45,6 +46,7 @@ case class Crossword(
     }
   }
 
+  @JSExport
   def repr(): String = {
     // Fetch the grid contents
     val elements = for {

@@ -9,6 +9,6 @@ case class Letter(char: Char, direction: Direction) extends Placeable {
   def length: Int = 0
 }
 
-case class Word(word: String, clue: String) extends Placeable {
+case class Word(word: String) extends Placeable {
   def length: Int = word.length
 }

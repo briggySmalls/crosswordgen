@@ -3,12 +3,24 @@ package services
 
 import models.{Crossword, Direction, Letter, Placed, Word}
 
-import mycrossword.services.CrosswordBuilderService.selectBestCrossword
-
 import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.scalajs.js
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.util.Random
 
+@JSExportTopLevel("Crossword")
 class CrosswordBuilderService {
+  import CrosswordBuilderService._
+
+  @JSExport
+  def findGoodCrossword(
+      words: js.Array[String],
+      iterations: Int
+  ): Crossword = {
+    findGoodCrossword(words.map(Word.apply).toSet, iterations)
+  }
+
   def findGoodCrossword(words: Set[Word], iterations: Int): Crossword = {
     val trials = (1 to iterations).map(_ => buildCrossword(words))
     selectBestCrossword(trials, words.size)
@@ -17,10 +29,11 @@ class CrosswordBuilderService {
   def buildCrossword(words: Set[Word]): Crossword =
     // Sort words by length, starting with the longest
     words.toSeq.sortBy(_.word.length)(Ordering.Int.reverse) match {
-      case Nil          => Crossword.empty // We weren't given any words to place!
+      case Nil => Crossword.empty // We weren't given any words to place!
       case head +: tail =>
         // Create a crossword with the first word
-        val direction = Random.shuffle(Seq(Direction.Across, Direction.Down)).head
+        val direction =
+          Random.shuffle(Seq(Direction.Across, Direction.Down)).head
         val init = Crossword.init(head, direction)
         // Try to place the rest
         placeWords(tail, init)
@@ -93,10 +106,9 @@ object CrosswordBuilderService {
       cs: Seq[Crossword],
       candidateWordCount: Int
   ): Crossword =
-    val maxArea = cs.foldLeft(0){case(area, c) => area.max(c.bounds.area)}
-    val scoredCrosswords = cs.map(c =>
-      (c, calculateScore(c, candidateWordCount, maxArea))
-    )
+    val maxArea = cs.foldLeft(0) { case (area, c) => area.max(c.bounds.area) }
+    val scoredCrosswords =
+      cs.map(c => (c, calculateScore(c, candidateWordCount, maxArea)))
     scoredCrosswords.reduce { case (best, candidate) =>
       if (candidate._2 > best._2) candidate
       else best
@@ -108,12 +120,13 @@ object CrosswordBuilderService {
       maxSize: Int
   ): Double = {
     val numWords = c.words.size / candidateWordCount.toDouble
-    val squareness = 1 - ((c.bounds.width - c.bounds.height) / (c.bounds.width + c.bounds.height).toDouble).abs
+    val squareness =
+      1 - ((c.bounds.width - c.bounds.height) / (c.bounds.width + c.bounds.height).toDouble).abs
     val size = 1 - ((c.bounds.area) / maxSize.toDouble)
     Set(
       (3.0, numWords),
       (1.0, squareness),
       (2.0, size)
-    ).foldLeft(0.0){ case (score, (w, s)) => score + w * s }
+    ).foldLeft(0.0) { case (score, (w, s)) => score + w * s }
   }
 }

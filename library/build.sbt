@@ -7,14 +7,10 @@ lazy val root = (project in file("."))
     name := "mycrossword",
     idePackagePrefix := Some("mycrossword")
   )
+  .enablePlugins(ScalaJSPlugin)
 
 libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % "3.2.13",
   "org.scalatest" %% "scalatest" % "3.2.13" % "test",
   "org.scalatestplus" %% "scalacheck-1-16" % "3.2.12.0" % "test"
 )
-
-enablePlugins(ScalaJSPlugin)
-
-// This is an application with a main method
-scalaJSUseMainModuleInitializer := true
