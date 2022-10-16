@@ -44,7 +44,12 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
     val result = brentfordCrossword.tryPlaceWord(
       attemptWord, Placed(Letter('e', Direction.Across), Placement(Index(0, 2), Direction.Across))
     )
+    println(result.map(_.repr()))
     result.value should === (expected)
+  }
+
+  "Crossword.repr" should "render a simple crossword" in {
+    brentfordCrossword.repr() should === ("b|r|e|n|t|f|o|r|d")
   }
 }
 

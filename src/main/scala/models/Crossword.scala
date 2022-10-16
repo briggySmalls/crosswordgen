@@ -43,8 +43,8 @@ case class Crossword(
     val enclosingBounds = Bounds.enclosingBounds(allBounds)
     // Fetch the grid contents
     val elements = for {
-      r <- 0 until enclosingBounds.width
-      c <- 0 until enclosingBounds.height
+      r <- enclosingBounds.min.row to enclosingBounds.max.row
+      c <- enclosingBounds.min.column until enclosingBounds.max.column
     } yield {
       grid(Index(r, c))
     }
