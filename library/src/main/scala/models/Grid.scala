@@ -19,7 +19,8 @@ case class Grid(data: SparseVector[GridElement]) {
 
   def placeLetter(index: Index, letter: Letter): Grid = {
     // Add the letter
-    val dataWithLetter = data.updated(index, Filled(letter))
+    val dataWithLetter =
+      if (!data(index).isFilled) data.updated(index, Filled(letter)) else data
     val wordDirection = letter.direction
     val perpDirection = !wordDirection
     // We must check either side of the letter
