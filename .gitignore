@@ -1,2 +1,4 @@
 # Ignore build output
 build/
+# Local Netlify folder
+.netlify
