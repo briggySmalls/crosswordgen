@@ -58,7 +58,7 @@ jobs:
           echo $args
           echo "additional_deploy_args=$args" >> $GITHUB_OUTPUT
       - name: Show build args
-        run: echo "${{ steps.deploy_args.output.additional_deploy_args }}"
+        run: echo "${{ steps.deploy_args.outputs.additional_deploy_args }}"
       - name: Publish
         id: publish
         uses: netlify/actions/cli@master
@@ -73,6 +73,6 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           message: |
-            Netlify draft site: ${{ steps.publish.output.NETLIFY_URL }}
+            Netlify draft site: ${{ steps.publish.outputs.NETLIFY_URL }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           repo-token-user-login: 'github-actions[bot]' # The user.login for temporary GitHub tokens
