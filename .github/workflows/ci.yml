@@ -55,6 +55,7 @@ jobs:
         run: |
           args=()
           [[ $GITHUB_REF_NAME == "master" ]] && args+=( '--prod' )
+          [[ $GITHUB_REF_NAME != "master" ]] && args+=( '--alias', $GITHUB_REF_NAME )
           echo $args
           echo "additional_deploy_args=$args" >> $GITHUB_OUTPUT
       - name: Show build args
