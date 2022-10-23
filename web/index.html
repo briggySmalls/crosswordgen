@@ -13,7 +13,7 @@
     <div id="crossword"></div>
     <div id="clues"></div>
     <!-- Include Scala.js compiled code -->
-    <script src="../library/target/scala-3.1.3/mycrossword-fastopt/main.js"></script>
+    <script src="main.js"></script>
     <script>
       const c = new Crossword();
       const parser = new DOMParser();
@@ -41,11 +41,11 @@
         const list = document.createElement('ul');
         list.append(...numberedWords.map(w => {
             const item = document.createElement('li');
-            item.appendChild(document.createTextNode(w));
+            item.appendChild(document.createTextNode(w.number + " " + w.direction + " " + w.word));
             return item;
           })
         );
-        cluesDiv.appendChild(list);
+        cluesDiv.replaceChildren(list);
         // Indicate we succeeded to the browser
         return false;
       }
