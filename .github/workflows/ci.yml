@@ -55,7 +55,10 @@ jobs:
         run: |
           args=()
           [[ $GITHUB_REF_NAME == "master" ]] && args+=( '--prod' )
+          echo $args
           echo "additional_deploy_args=$args" >> $GITHUB_OUTPUT
+      - name: Show build args
+        run: echo "${{ steps.deploy_args.output.additional_deploy_args }}"
       - name: Publish
         id: publish
         uses: netlify/actions/cli@master
@@ -64,6 +67,8 @@ jobs:
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Show deploy outputs
+        run: echo "${{ steps.publish.output }}"
       - uses: mshick/add-pr-comment@v1
         if: github.event_name == 'pull_request'
         with:
