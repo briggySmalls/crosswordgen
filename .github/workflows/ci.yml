@@ -1,7 +1,11 @@
 name: CI
 on:
   pull_request:
+    branches:
+      - master
   push:
+    branches:
+      - master
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -53,9 +57,17 @@ jobs:
           [[ $GITHUB_REF_NAME == "master" ]] && args+=( '--prod' )
           echo "additional_deploy_args=$args" >> $GITHUB_OUTPUT
       - name: Publish
+        id: publish
         uses: netlify/actions/cli@master
         with:
-          args: "deploy --dir=build ${{ env.deploy_args.output.additional_deploy_args }}"
+          args: "deploy --dir=build ${{ steps.deploy_args.output.additional_deploy_args }}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - uses: mshick/add-pr-comment@v1
+        if: github.event_name == 'pull_request'
+        with:
+          message: |
+            Netlify draft site: ${{ steps.publish.output.NETLIFY_URL }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token-user-login: 'github-actions[bot]' # The user.login for temporary GitHub tokens
