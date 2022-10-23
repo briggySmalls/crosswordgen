@@ -10,8 +10,8 @@ lazy val root = (project in file("."))
   .enablePlugins(ScalaJSPlugin)
 
 libraryDependencies ++= Seq(
-  "org.scalactic" %% "scalactic" % "3.2.13",
+  "org.scalactic" %%% "scalactic" % "3.2.13",
+  "org.scalatest" %%% "scalatest" % "3.2.13" % "test",
   "com.lihaoyi" %%% "scalatags" % "0.12.0",
-  "org.scalatest" %% "scalatest" % "3.2.13" % "test",
-  "org.scalatestplus" %% "scalacheck-1-16" % "3.2.12.0" % "test"
+  "org.scalatestplus" %%% "scalacheck-1-16" % "3.2.12.0" % "test"
 )

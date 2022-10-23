@@ -31,7 +31,7 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
     )
   }
 
-  "Crossword.placeWord" should "place word correctly" in {
+  "Crossword.tryPlaceWord" should "place word correctly" in {
     val attemptWord = Word("attempt")
     val expected = toCrossword(
       Set(
@@ -42,7 +42,7 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
         |  |  |a↓|  |  |  |  |  |
         |  |  |t↓|  |  |  |  |  |
         |  |■■|t↓|■■|  |  |  |  |
-        |b→|r→|e↓|n→|t→|f→|o→|r→|d→
+        |b→|r→|e→|n→|t→|f→|o→|r→|d→
         |  |■■|m↓|■■|  |  |  |  |
         |  |  |p↓|  |  |  |  |  |
         |  |  |t↓|  |  |  |  |  |
@@ -56,7 +56,6 @@ class CrosswordSpec extends AnyFlatSpec with should.Matchers with OptionValues {
         Placement(Index(0, 2), Direction.Across)
       )
     )
-    println(result.map(_.repr()))
     result.value should ===(expected)
   }
 
