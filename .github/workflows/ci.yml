@@ -64,12 +64,10 @@ jobs:
         id: publish
         uses: netlify/actions/cli@master
         with:
-          args: "deploy --dir=build ${{ steps.deploy_args.output.additional_deploy_args }}"
+          args: "deploy --dir=build ${{ steps.deploy_args.outputs.additional_deploy_args }}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      - name: Show deploy outputs
-        run: echo "${{ steps.publish.output }}"
       - uses: mshick/add-pr-comment@v1
         if: github.event_name == 'pull_request'
         with:
